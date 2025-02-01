@@ -7,6 +7,12 @@ name = "pypi"
 fastapi = "*"
 uvicorn = "*"
 motor = "*"
+pyowm = "*"
+python-dotenv = "*"
+google-api-python-client = "*"
+torch = "*"
+torchvision = "*"
+torchaudio = "*"
 
 [dev-packages]
 
