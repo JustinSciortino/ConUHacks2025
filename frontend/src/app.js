@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState } from "react";
 import "./index.css";
 import correlationMatrix from "./correlation_matrix.png";
@@ -11,7 +10,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch comments data from the backend
   const handleFetchComments = async () => {
     if (!link) return;
     setLoading(true);
@@ -33,7 +31,6 @@ export default function App() {
     }
   };
 
-  // Fetch video info data from the backend
   const handleFetchVideoInfo = async () => {
     if (!link) return;
     setLoading(true);
@@ -54,138 +51,97 @@ export default function App() {
     }
   };
 
-  // Calculate positive percentage for the progress bar (if available)
-  let positivePercent = 0;
-  if (commentsData && commentsData.total_comments) {
-    positivePercent =
-      (commentsData.num_positive_comments / commentsData.total_comments) * 100;
-  }
+  const handleAnalyzeComments = async () => {
+    if (!commentsData || !commentsData.negative_comments) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/analyze-comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(commentsData.negative_comments.slice(0, 3)),
+      });
+      if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+      const result = await response.json();
+      setAnalysis(result.analysis);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* === Section 1: YouTube Link Input === */}
-      <section className="w-full max-w-screen-xl mx-auto my-8 px-8 bg-red-600 rounded-lg shadow-lg py-12">
-        <h2 className="text-4xl font-bold text-white">
-          How Toxic is Your{" "}
-          <span className="text-black shadow-[1px_1px_0_#fff]">YouTube</span>{" "}
-          Video?
-        </h2>
-        <p className="mt-2 text-xl text-red-200">
-          Enter a link below to analyze it using our system.
-        </p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Enter a YouTube link"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            disabled={loading} // Disable while loading
-            className="flex-1 rounded-md bg-white/10 px-4 py-3 text-base text-white placeholder:text-red-300 outline-none focus:ring-2 focus:ring-red-300"
-          />
-          <button
-            onClick={() => {
-              // Fire both endpoints when the button is clicked
-              handleFetchComments();
-              handleFetchVideoInfo();
-            }}
-            disabled={loading}
-            className="rounded-md bg-white px-4 py-3 text-sm font-semibold text-red-700 shadow hover:bg-red-300 focus:ring-2 focus:ring-white"
-          >
-            {loading ? "Loading..." : "Analyze Comments"}
-          </button>
-        </div>
-        {error && <p className="mt-4 text-yellow-300">{error}</p>}
-      </section>
+    <div className="relative isolate overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-700 py-16 sm:py-24 lg:py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-2">
+          <div className="max-w-xl lg:max-w-lg">
+            <h2 className="text-4xl font-bold tracking-tight text-white">
+              How Toxic is Your{" "}
+              <span className="text-black [text-shadow:_-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,-1px_0px_0_white,1px_0px_0_white,0px_1px_0_white,0px_-1px_0_white]">
+                YouTube
+              </span>{" "}
+              Video?
+            </h2>
 
-      {/* === Section 2: Video Info & Comments Breakdown === */}
-      {videoInfo && commentsData && (
-        <section className="w-full max-w-screen-xl mx-auto my-8 px-8 bg-white rounded-lg shadow-lg py-6">
-          {/* Video Info Header */}
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            {/* Left: Video Thumbnail */}
-            <div className="md:w-1/3">
-              <img
-                src={videoInfo.thumbnail_url}
-                alt="Video Thumbnail"
-                className="w-full h-auto rounded-md object-cover"
+            <p className="mt-4 text-lg text-red-200">
+              Enter a link below to analyze it using our system.
+            </p>
+            <div className="mt-6 flex max-w-md gap-x-4">
+              <input
+                type="text"
+                placeholder="Enter a link"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                className="min-w-0 flex-auto rounded-md bg-white/10 px-4 py-3 text-base text-white placeholder:text-red-300 outline-none focus:ring-2 focus:ring-red-300 sm:text-sm/6"
               />
-            </div>
-            {/* Right: Video Title (Channel profile image removed) */}
-            <div className="md:w-2/3">
-              <h2 className="text-2xl font-bold">{videoInfo.video_title}</h2>
-              {/* Optionally you can include the channel name here */}
-              <p className="text-gray-700 mt-2">{videoInfo.channel_name}</p>
-            </div>
-          </div>
-
-          {/* Horizontal Bar with Comments Breakdown */}
-          <div className="mt-6">
-            <div className="flex justify-between mb-1">
-              <span className="font-semibold">
-                Positive comments: {commentsData.num_positive_comments}
-              </span>
-              <span className="font-semibold">
-                Negative comments: {commentsData.num_negative_comments}
-              </span>
-            </div>
-            <div className="w-full bg-gray-300 h-4 rounded">
-              <div
-                className="bg-green-500 h-4 rounded"
-                style={{ width: `${positivePercent}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Catalogues for Top Positive & Negative Comments */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Top Positive Comments */}
-            <div>
-              <h3 className="font-bold text-xl mb-2">Top Positive Comments</h3>
-              {commentsData.positive_comments &&
-              commentsData.positive_comments.length > 0 ? (
-                <ul className="list-disc ml-4">
-                  {commentsData.positive_comments.map((comment, idx) => (
-                    <li key={idx} className="mt-1 text-sm text-gray-800">
-                      {comment}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No positive comments found.
-                </p>
-              )}
-            </div>
-
-            {/* Top Negative Comments */}
-            <div>
-              <h3 className="font-bold text-xl mb-2">Top Negative Comments</h3>
-              {commentsData.negative_comments &&
-              commentsData.negative_comments.length > 0 ? (
-                <ul className="list-disc ml-4">
-                  {commentsData.negative_comments.map((comment, idx) => (
-                    <li key={idx} className="mt-1 text-sm text-gray-800">
-                      {comment}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No negative comments found.
-                </p>
+              <button
+                onClick={handleFetchComments}
+                disabled={loading}
+                className="flex-none rounded-md bg-white px-4 py-3 text-sm font-semibold text-red-700 shadow-md hover:bg-red-300 focus:ring-2 focus:ring-white"
+              >
+                {loading ? "Loading..." : "Analyze Comments"}
+              </button>
+              {commentsData && (
+                <button
+                  onClick={handleAnalyzeComments}
+                  disabled={loading}
+                  className="flex-none rounded-md bg-white px-4 py-3 text-sm font-semibold text-red-700 shadow-md hover:bg-red-300 focus:ring-2 focus:ring-white"
+                >
+                  {loading ? "Loading..." : "Summarize Comments"}
+                </button>
               )}
             </div>
           </div>
-        </section>
-      )}
+        </div>
 
-      {/* === Section 3: Data Analytics === */}
-      <section className="w-full max-w-screen-xl mx-auto my-8 px-8 bg-gray-100 rounded-lg shadow-lg py-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Side – Key Insights */}
-          <div className="md:w-1/2">
-            <h3 className="text-lg font-semibold mb-2">Key Insights</h3>
-            <ul className="list-disc pl-5 text-gray-700 text-sm">
+        {error && <p className="mt-4 text-yellow-400">{error}</p>}
+
+        {/* Video Thumbnail Section */}
+        {videoInfo && videoInfo.thumbnail && (
+          <div className="mt-6 p-6 bg-white rounded-lg shadow-md border border-gray-300">
+            <h3 className="text-xl font-semibold mb-3 text-gray-800">
+              Video Thumbnail:
+            </h3>
+            <img
+              src={videoInfo.thumbnail}
+              alt="YouTube Thumbnail"
+              className="rounded-md w-full shadow-sm"
+            />
+          </div>
+        )}
+
+        {/* Key Insights & Correlation Map */}
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Key Insights */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold mb-3 text-gray-800">
+              Key Insights
+            </h3>
+            <ul className="list-disc pl-5 text-gray-700 text-sm space-y-2">
               <li>
                 Racism and hate speech have the strongest correlation, meaning
                 racist comments are almost always flagged as hateful.
@@ -212,19 +168,20 @@ export default function App() {
               </li>
             </ul>
           </div>
-          {/* Right Side – Correlation Map */}
-          <div className="md:w-1/2">
-            <h3 className="text-3xl font-semibold mb-4">Correlation Map</h3>
-            <div className="bg-white p-4 rounded-lg shadow-inner h-64 flex items-center justify-center">
-              <img
-                src={correlationMatrix}
-                alt="Correlation Matrix"
-                className="max-w-full max-h-full object-contain"
-              />
-            </div>
+
+          {/* Correlation Map */}
+          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+            <h3 className="text-lg font-semibold mb-3 text-gray-800">
+              Correlation Map
+            </h3>
+            <img
+              src={correlationMatrix}
+              alt="Correlation Matrix"
+              className="w-full max-w-md rounded-md shadow-md"
+            />
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
