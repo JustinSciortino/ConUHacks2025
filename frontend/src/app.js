@@ -1,6 +1,7 @@
 // src/App.jsx
 import { useState } from "react";
 import "./index.css";
+import correlationMatrix from "./correlation_matrix.png";
 
 export default function App() {
   const [link, setLink] = useState("");
@@ -82,7 +83,7 @@ export default function App() {
         className="w-full max-w-screen-xl mx-auto my-8 
                    px-8 bg-red-600 rounded-lg shadow-lg
                    /* Change vertical spacing here: */
-                   py-12" 
+                   py-12"
       >
         <h2 className="text-4xl font-bold text-white">
           How Toxic is Your{" "}
@@ -150,27 +151,43 @@ export default function App() {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Left Side – Bullet Points */}
           <div className="md:w-1/2">
-            <h3 className="text-3xl font-semibold mb-4">Key Insights</h3>
-            <ul className="list-disc pl-5 text-gray-800 text-lg">
+            <h3 className="text-lg font-semibold mb-2">Key Insights</h3>
+            <ul className="list-disc pl-5 text-gray-700 text-sm">
               <li>
-                Toxicity Score:{" "}
-                {analysis ? parseFloat(analysis).toFixed(2) : "N/A"}
+                Racism and hate speech have the strongest correlation, meaning
+                racist comments are almost always flagged as hateful.
               </li>
               <li>
-                Positive/Negative Ratio:{" "}
-                {commentsData
-                  ? commentsData.positive_negative_ratio || "N/A"
-                  : "N/A"}
+                If a comment is labeled toxic, there’s a very high chance it’s
+                also abusive.
               </li>
-              <li>Viewer Engagement: TBD</li>
+              <li>
+                YouTube comments containing hate speech are very likely to also
+                be racist.
+              </li>
+              <li>
+                Many toxic or provocative YouTube comments also tend to be
+                abusive.
+              </li>
+              <li>
+                Abusive comments do not strongly correlate with sexism, meaning
+                general abuse and sexist language often appear separately.
+              </li>
+              <li>
+                Obscene YouTube comments have a high likelihood of also being
+                toxic and abusive.
+              </li>
             </ul>
           </div>
           {/* Right Side – Correlation Map */}
           <div className="md:w-1/2">
             <h3 className="text-3xl font-semibold mb-4">Correlation Map</h3>
             <div className="bg-white p-4 rounded-lg shadow-inner h-64 flex items-center justify-center">
-              {/* Replace this placeholder with your correlation map component */}
-              <p className="text-gray-500">Correlation Map Placeholder</p>
+              <img
+                src={correlationMatrix}
+                alt="Correlation Matrix"
+                className="max-w-full max-h-full object-contain"
+              />
             </div>
           </div>
         </div>
