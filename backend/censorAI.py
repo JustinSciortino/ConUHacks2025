@@ -10,12 +10,10 @@ def analyze_comments(pos_comments_list, neg_comments_list):
     """
     Takes a list of comments and generates an analysis summarizing overall sentiment and key themes.
     """
-
-    #if not comments:
-    #    return "No comments to analyze."
     
     if not pos_comments_list and not neg_comments_list:
         return [], []
+
 
     prompt = (
         "Your job is to analyze the following comments. The first set of comments are labeled as positive, "
@@ -35,9 +33,11 @@ def analyze_comments(pos_comments_list, neg_comments_list):
     #)
     
     response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}]
+    model="gpt-4o",
+    messages=[{"role": "user", "content": prompt}],
+    response_format={"type": "json_object"}  
     )
+
     
     #return response.choices[0].message.content
     try:
@@ -46,11 +46,15 @@ def analyze_comments(pos_comments_list, neg_comments_list):
         pos_comments = result.get("pos_comments", [])
         neg_comments = result.get("neg_comments", [])
     except json.JSONDecodeError:
-        print("Error: Unable to parse response as JSON.")
         pos_comments, neg_comments = [], []
+    if not pos_comments:
+        pos_comments = pos_comments_list
+    if not neg_comments:
+        neg_comments = neg_comments_list
+
 
     return pos_comments, neg_comments  # Return two lists of verified comments
-
+"""
 # Example usage:
 comments = [
     "This video is really informative, I learned a lot!",
@@ -59,4 +63,4 @@ comments = [
 ]
 
 analysis = analyze_comments(comments)
-print("Comment Analysis:", analysis)
+print("Comment Analysis:", analysis)"""
