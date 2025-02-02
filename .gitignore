@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 backend/trained_model
 .DS_Store
+.env
