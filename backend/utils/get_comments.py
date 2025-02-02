@@ -9,10 +9,6 @@ load_dotenv()
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 def get_video_id(youtube_url: str) -> str:
-    """
-    Extract the YouTube video ID from a typical watch URL.
-    E.g. "https://www.youtube.com/watch?v=abcdef12345" -> "abcdef12345"
-    """
     parsed_url = urlparse(youtube_url)
     query_params = parse_qs(parsed_url.query)
     video_id = query_params.get('v')
@@ -20,6 +16,43 @@ def get_video_id(youtube_url: str) -> str:
         return video_id[0]
     else:
         raise ValueError("Invalid YouTube URL. Could not extract video ID.")
+
+def fetch_video_details(video_url: str) -> dict:
+    if not YOUTUBE_API_KEY:
+        raise ValueError("YOUTUBE_API_KEY not found. Make sure it's set in the .env file.")
+
+    video_id = get_video_id(video_url)
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY, cache_discovery=False)
+
+    video_request = youtube.videos().list(
+        part="snippet",
+        id=video_id
+    )
+    video_response = video_request.execute()
+
+    if not video_response.get('items'):
+        raise ValueError("No video details found. Invalid video ID.")
+
+    video_data = video_response['items'][0]['snippet']
+    channel_id = video_data["channelId"]
+
+    channel_request = youtube.channels().list(
+        part="snippet",
+        id=channel_id
+    )
+    channel_response = channel_request.execute()
+
+    if not channel_response.get('items'):
+        raise ValueError("No channel details found. Invalid channel ID.")
+
+    channel_data = channel_response['items'][0]['snippet']
+
+    return {
+        "video_title": video_data["title"],
+        "channel_name": video_data["channelTitle"],
+        "thumbnail_url": video_data["thumbnails"]["high"]["url"],
+        "channel_profile_image": channel_data["thumbnails"]["high"]["url"]
+    }
 
 def fetch_youtube_comments(video_url: str) -> list:
     """
