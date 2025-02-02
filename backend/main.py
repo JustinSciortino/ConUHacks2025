@@ -5,6 +5,7 @@ from transformers import BertForSequenceClassification, BertTokenizer
 import torch
 import re
 from typing import List, Dict
+from censorAI import analyze_comments  # Import the function
 
 app = FastAPI()
 
@@ -113,6 +114,20 @@ def fetch_comments(link: str = Query(..., description="Youtube URL")):
         raise HTTPException(status_code=400, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+    from fastapi import FastAPI, Query, HTTPException
+from typing import List
+
+app = FastAPI()
+
+@app.post("/analyze-comments")
+def analyze_video_comments(comments: List[str]):
+    try:
+        analysis = analyze_comments(comments)
+        return {"analysis": analysis}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     
 
 if __name__ == "__main__":
