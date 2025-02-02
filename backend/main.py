@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from utils.get_comments import fetch_youtube_comments, fetch_video_details
 from transformers import BertForSequenceClassification, BertTokenizer
@@ -8,6 +9,14 @@ from typing import List, Dict
 from censorAI import analyze_comments  # Import the function
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can specify allowed origins here
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 MODEL_PATH = "trained_model"
 
@@ -99,17 +108,20 @@ def clean_text(text: str) -> str:
 def fetch_comments(link: str = Query(..., description="Youtube URL")):
     try:
         yt_comments = fetch_youtube_comments(link)
-        try:
-            comments_info = classify_comments(yt_comments)
-            comments_info["positive_comments"], comments_info["negative_comments"] = analyze_comments(comments_info["positive_comments"], comments_info["negative_comments"])
-            return comments_info
-        except RuntimeError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+        comments_info = classify_comments(yt_comments)
+        if "positive_comments" in comments_info and "negative_comments" in comments_info:
+            pos, neg = analyze_comments(
+                comments_info["positive_comments"],
+                comments_info["negative_comments"]
+            )
+            comments_info["positive_comments"] = pos
+            comments_info["negative_comments"] = neg
+        return comments_info
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @app.get("/video-info")
 def fetch_comments(link: str = Query(..., description="Youtube URL")):

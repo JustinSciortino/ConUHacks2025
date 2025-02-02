@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { CalendarDaysIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
+// src/App.jsx
+import { useState } from "react";
 import "./index.css";
 
 export default function App() {
@@ -10,6 +10,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Fetches comments and returns early if link is empty.
   const handleFetchComments = async () => {
     if (!link) return;
     setLoading(true);
@@ -21,9 +22,7 @@ export default function App() {
       const response = await fetch(
         `http://127.0.0.1:8000/comments?link=${encodeURIComponent(link)}`
       );
-
       if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-
       const result = await response.json();
       setCommentsData(result);
     } catch (err) {
@@ -43,9 +42,7 @@ export default function App() {
       const response = await fetch(
         `http://127.0.0.1:8000/video-info?link=${encodeURIComponent(link)}`
       );
-
       if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-
       const result = await response.json();
       setVideoInfo(result);
     } catch (err) {
@@ -68,9 +65,7 @@ export default function App() {
         },
         body: JSON.stringify(commentsData.negative_comments.slice(0, 3)),
       });
-
       if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-
       const result = await response.json();
       setAnalysis(result.analysis);
     } catch (err) {
@@ -81,65 +76,105 @@ export default function App() {
   };
 
   return (
-    <div className="relative isolate overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-700 py-16 sm:py-24 lg:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-2">
-          <div className="max-w-xl lg:max-w-lg">
-            <h2 className="text-4xl font-bold tracking-tight text-white">
-              How Toxic is Your{" "}
-              <span className="text-black [text-shadow:_-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,-1px_0px_0_white,1px_0px_0_white,0px_1px_0_white,0px_-1px_0_white]">
-                YouTube
-              </span>{" "}
-              Video?
-            </h2>
+    <div className="min-h-screen bg-gray-50">
+      {/* Section 1: YouTube Link Input */}
+      <section
+        className="w-full max-w-screen-xl mx-auto my-8 
+                   px-8 bg-red-600 rounded-lg shadow-lg
+                   /* Change vertical spacing here: */
+                   py-12" 
+      >
+        <h2 className="text-4xl font-bold text-white">
+          How Toxic is Your{" "}
+          <span className="text-black shadow-[1px_1px_0_#fff]">YouTube</span>{" "}
+          Video?
+        </h2>
+        <p className="mt-2 text-xl text-red-200">
+          Enter a link below to analyze it using our system.
+        </p>
+        <div className="mt-6 flex flex-col sm:flex-row gap-4">
+          <input
+            type="text"
+            placeholder="Enter a YouTube link"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            className="flex-1 rounded-md bg-white/10 px-4 py-3 text-base text-white placeholder:text-red-300 outline-none focus:ring-2 focus:ring-red-300"
+          />
+          <button
+            onClick={() => {
+              handleFetchComments();
+              handleFetchVideoInfo();
+            }}
+            disabled={loading}
+            className="rounded-md bg-white px-4 py-3 text-sm font-semibold text-red-700 shadow hover:bg-red-300 focus:ring-2 focus:ring-white"
+          >
+            {loading ? "Loading..." : "Analyze"}
+          </button>
+          {commentsData && (
+            <button
+              onClick={handleAnalyzeComments}
+              disabled={loading}
+              className="rounded-md bg-white px-4 py-3 text-sm font-semibold text-red-700 shadow hover:bg-red-300 focus:ring-2 focus:ring-white"
+            >
+              {loading ? "Loading..." : "Summarize Comments"}
+            </button>
+          )}
+        </div>
+        {error && <p className="mt-4 text-yellow-300">{error}</p>}
+      </section>
 
-            <p className="mt-4 text-lg text-red-200">
-              Enter a link below to analyze it using our system.
-            </p>
-            <div className="mt-6 flex max-w-md gap-x-4">
-              <input
-                type="text"
-                placeholder="Enter a link"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                className="min-w-0 flex-auto rounded-md bg-white/10 px-3.5 py-2 text-base text-white placeholder:text-red-300 outline-none focus:ring-2 focus:ring-red-300 sm:text-sm/6"
-              />
-              <button
-                onClick={handleFetchComments}
-                disabled={loading}
-                className="flex-none rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-300 focus:ring-2 focus:ring-white"
-              >
-                {loading ? "Loading..." : "Analyze Comments"}
-              </button>
-              <button
-                onClick={handleFetchVideoInfo}
-                disabled={loading}
-                className="flex-none rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-300 focus:ring-2 focus:ring-white"
-              >
-                {loading ? "Loading..." : "Get Video Info"}
-              </button>
-              {commentsData && (
-                <button
-                  onClick={handleAnalyzeComments}
-                  disabled={loading}
-                  className="flex-none rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-300 focus:ring-2 focus:ring-white"
-                >
-                  {loading ? "Loading..." : "Summarize Comments"}
-                </button>
-              )}
+      {/* Section 2: YouTube Thumbnail (hidden until videoInfo exists) */}
+      {videoInfo && videoInfo.thumbnail && (
+        <section
+          className="w-full max-w-screen-xl mx-auto my-8 
+                     px-8 bg-white rounded-lg shadow-lg
+                     /* Adjust vertical padding with py-6, py-8, etc.: */
+                     py-6"
+        >
+          <h3 className="text-3xl font-semibold mb-4">Video Thumbnail</h3>
+          <img
+            src={videoInfo.thumbnail}
+            alt="YouTube Thumbnail"
+            className="w-full rounded-md"
+          />
+        </section>
+      )}
+
+      {/* Section 3: Data Analytics (always visible) */}
+      <section
+        className="w-full max-w-screen-xl mx-auto my-8 
+                   px-8 bg-gray-100 rounded-lg shadow-lg
+                   /* Adjust vertical padding as needed: */
+                   py-6"
+      >
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left Side – Bullet Points */}
+          <div className="md:w-1/2">
+            <h3 className="text-3xl font-semibold mb-4">Key Insights</h3>
+            <ul className="list-disc pl-5 text-gray-800 text-lg">
+              <li>
+                Toxicity Score:{" "}
+                {analysis ? parseFloat(analysis).toFixed(2) : "N/A"}
+              </li>
+              <li>
+                Positive/Negative Ratio:{" "}
+                {commentsData
+                  ? commentsData.positive_negative_ratio || "N/A"
+                  : "N/A"}
+              </li>
+              <li>Viewer Engagement: TBD</li>
+            </ul>
+          </div>
+          {/* Right Side – Correlation Map */}
+          <div className="md:w-1/2">
+            <h3 className="text-3xl font-semibold mb-4">Correlation Map</h3>
+            <div className="bg-white p-4 rounded-lg shadow-inner h-64 flex items-center justify-center">
+              {/* Replace this placeholder with your correlation map component */}
+              <p className="text-gray-500">Correlation Map Placeholder</p>
             </div>
           </div>
         </div>
-
-        {error && <p className="mt-4 text-yellow-400">{error}</p>}
-
-        {analysis && (
-          <div className="mt-6 p-6 bg-white/20 text-white rounded-lg shadow-lg border border-gray-300 backdrop-blur-md">
-            <h3 className="text-xl font-semibold mb-3">Comment Analysis:</h3>
-            <p className="text-md leading-relaxed">{analysis}</p>
-          </div>
-        )}
-      </div>
+      </section>
     </div>
   );
 }
