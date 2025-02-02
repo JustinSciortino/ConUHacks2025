@@ -96,7 +96,9 @@ def fetch_comments(link: str = Query(..., description="Youtube URL")):
     try:
         yt_comments = fetch_youtube_comments(link)
         try:
-            return classify_comments(yt_comments)
+            comments_info = classify_comments(yt_comments)
+            comments_info["positive_comments"], comments_info["negative_comments"] = analyze_comments(comments_info["positive_comments"], comments_info["negative_comments"])
+            return comments_info
         except RuntimeError as e:
             raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError as e:
