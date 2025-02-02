@@ -15,8 +15,6 @@ torchaudio = "*"
 transformers = "*"
 scikit-learn = "*"
 pandas = "*"
+openai = "*"
 
 [dev-packages]
-
-[requires]
-python_version = "3.9"
