@@ -51,7 +51,7 @@ def classify_comments(yt_comments: List[str]) -> Dict:
         if classification == "Positive":
             positive_count += 1
 
-            if len(positive_list) < 5:
+            if len(positive_list) < 10:
                 positive_list.append(comment)
 
         else:
@@ -63,7 +63,7 @@ def classify_comments(yt_comments: List[str]) -> Dict:
 
     for key in sorted_negative_dict_keys:
         negative_comments.extend(negative_dict[key])
-        if len(negative_comments) >= 5:
+        if len(negative_comments) >= 10:
             break
 
     return {
