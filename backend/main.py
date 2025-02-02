@@ -17,7 +17,11 @@ loaded_model.config.problem_type = "multi_label_classification"
 loaded_model.eval()  
 
 max_length = 128  
-label_cols = ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]  
+label_cols = [
+    "IsToxic", "IsAbusive", "IsThreat", "IsProvocative", "IsObscene",
+    "IsHatespeech", "IsRacist", "IsNationalist", "IsSexist",
+    "IsHomophobic", "IsReligiousHate", "IsRadicalism"
+]
 
 def classify_comment(text: str, threshold=0.5):
     cleaned = clean_text(text)
@@ -116,21 +120,7 @@ def fetch_comments(link: str = Query(..., description="Youtube URL")):
         raise HTTPException(status_code=400, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-    from fastapi import FastAPI, Query, HTTPException
-from typing import List
 
-app = FastAPI()
-
-@app.post("/analyze-comments")
-def analyze_video_comments(comments: List[str]):
-    try:
-        analysis = analyze_comments(comments)
-        return {"analysis": analysis}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    
 
 if __name__ == "__main__":
     import uvicorn
